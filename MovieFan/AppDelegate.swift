@@ -1,9 +1,4 @@
-//
-//  AppDelegate.swift
-//  MovieFan
-//
-//  Created by HubertMac on 10/06/2024.
-//
+
 
 import UIKit
 

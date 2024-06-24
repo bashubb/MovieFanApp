@@ -23,6 +23,13 @@ class MovieDetailsViewController: UIViewController {
     private func setupMovieDetailsView() {
         movieDetailsView = MovieDetailsView(movie: movie)
         view.addSubview(movieDetailsView)
-        movieDetailsView.frame = view.bounds
+        
+        movieDetailsView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            movieDetailsView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            movieDetailsView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            movieDetailsView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            movieDetailsView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
     }
 }

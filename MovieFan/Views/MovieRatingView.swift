@@ -1,9 +1,17 @@
 import UIKit
 
+protocol MovieRatingViewDelegate: AnyObject {
+    func ratingDidChange(for movie: Movie, newRating: Float)
+}
+
 class MovieRatingView: UIView {
     private let movie1: Movie
     private let movie2: Movie
     private var ratingSlider: UISlider!
+    weak var delegate: MovieRatingViewDelegate?
+    
+    private let ratingLabel1 = UILabel()
+    private let ratingLabel2 = UILabel()
     
     init(movie1: Movie, movie2: Movie) {
         self.movie1 = movie1
@@ -18,16 +26,18 @@ class MovieRatingView: UIView {
     }
     
     private func setupView() {
+        backgroundColor = .white  // Dodaj tło, aby upewnić się, że widok jest widoczny
+        
         let titleLabel1 = UILabel()
         titleLabel1.text = movie1.title
         let imageView1 = UIImageView(image: UIImage(named: movie1.coverImageName))
-        let ratingLabel1 = UILabel()
+        imageView1.contentMode = .scaleAspectFit
         ratingLabel1.text = "Rating: \(movie1.averageRating)"
         
         let titleLabel2 = UILabel()
         titleLabel2.text = movie2.title
         let imageView2 = UIImageView(image: UIImage(named: movie2.coverImageName))
-        let ratingLabel2 = UILabel()
+        imageView2.contentMode = .scaleAspectFit
         ratingLabel2.text = "Rating: \(movie2.averageRating)"
         
         ratingSlider = UISlider()
@@ -52,10 +62,10 @@ class MovieRatingView: UIView {
         
         mainStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            mainStackView.topAnchor.constraint(equalTo: topAnchor),
-            mainStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            mainStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            mainStackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            mainStackView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 20),
+            mainStackView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            mainStackView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            mainStackView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
     
@@ -64,12 +74,10 @@ class MovieRatingView: UIView {
         let movie1Rating = max(0, min(5, 5 + ratingDifference))
         let movie2Rating = max(0, min(5, 5 - ratingDifference))
         
-        // Update ratings in the manager
-        MovieRatingManager.shared.rateMovie(movie1, rating: movie1Rating)
-        MovieRatingManager.shared.rateMovie(movie2, rating: movie2Rating)
+        delegate?.ratingDidChange(for: movie1, newRating: movie1Rating)
+        delegate?.ratingDidChange(for: movie2, newRating: movie2Rating)
         
-        // Update labels
-        // Assuming we have references to the labels, update them accordingly
+        ratingLabel1.text = "Rating: \(movie1Rating)"
+        ratingLabel2.text = "Rating: \(movie2Rating)"
     }
 }
-

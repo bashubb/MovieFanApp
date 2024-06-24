@@ -15,11 +15,16 @@ class MovieDetailsView: UIView {
     }
     
     private func setupView() {
+        backgroundColor = .white  // Dodaj tło, aby upewnić się, że widok jest widoczny
+        
         let imageView = UIImageView(image: UIImage(named: movie.coverImageName))
+        imageView.contentMode = .scaleAspectFit
         let titleLabel = UILabel()
         titleLabel.text = movie.title
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 24)
         let descriptionLabel = UILabel()
         descriptionLabel.text = movie.description
+        descriptionLabel.numberOfLines = 0
         let ratingLabel = UILabel()
         ratingLabel.text = "Rating: \(movie.averageRating)"
         
@@ -30,10 +35,10 @@ class MovieDetailsView: UIView {
         
         stackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: topAnchor),
-            stackView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            stackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            stackView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 20),
+            stackView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            stackView.bottomAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
 }

@@ -1,21 +1,14 @@
 import UIKit
 
-protocol MovieRatingViewDelegate: AnyObject {
-    func ratingDidChange(for movie: Movie, newRating: Float)
-}
-
 class MovieRatingView: UIView {
-    private let movie1: Movie
-    private let movie2: Movie
+    private let movie: Movie
     private var ratingSlider: UISlider!
+    private let averageRatingLabel = UILabel()
+    private let starStackView = UIStackView()
     weak var delegate: MovieRatingViewDelegate?
     
-    private let ratingLabel1 = UILabel()
-    private let ratingLabel2 = UILabel()
-    
-    init(movie1: Movie, movie2: Movie) {
-        self.movie1 = movie1
-        self.movie2 = movie2
+    init(movie: Movie) {
+        self.movie = movie
         super.init(frame: .zero)
         
         setupView()
@@ -26,58 +19,75 @@ class MovieRatingView: UIView {
     }
     
     private func setupView() {
-        backgroundColor = .white  // Dodaj tło, aby upewnić się, że widok jest widoczny
+        backgroundColor = .white
         
-        let titleLabel1 = UILabel()
-        titleLabel1.text = movie1.title
-        let imageView1 = UIImageView(image: UIImage(named: movie1.coverImageName))
-        imageView1.contentMode = .scaleAspectFit
-        ratingLabel1.text = "Rating: \(movie1.averageRating)"
+        let titleLabel = UILabel()
+        titleLabel.text = movie.title
+        let imageView = UIImageView(image: UIImage(named: movie.coverImageName))
+        imageView.contentMode = .scaleAspectFit
         
-        let titleLabel2 = UILabel()
-        titleLabel2.text = movie2.title
-        let imageView2 = UIImageView(image: UIImage(named: movie2.coverImageName))
-        imageView2.contentMode = .scaleAspectFit
-        ratingLabel2.text = "Rating: \(movie2.averageRating)"
+        averageRatingLabel.text = "Average Rating: \(movie.averageRating)"
         
         ratingSlider = UISlider()
-        ratingSlider.minimumValue = -5
+        ratingSlider.minimumValue = 0
         ratingSlider.maximumValue = 5
-        ratingSlider.value = 0
+        ratingSlider.value = movie.averageRating
         ratingSlider.addTarget(self, action: #selector(sliderValueChanged), for: .valueChanged)
         
-        let stackView1 = UIStackView(arrangedSubviews: [titleLabel1, imageView1, ratingLabel1])
-        stackView1.axis = .vertical
-        stackView1.spacing = 10
+        setupStarStackView()
         
-        let stackView2 = UIStackView(arrangedSubviews: [titleLabel2, imageView2, ratingLabel2])
-        stackView2.axis = .vertical
-        stackView2.spacing = 10
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, imageView, averageRatingLabel, starStackView, ratingSlider])
+        stackView.axis = .vertical
+        stackView.spacing = 10
+        addSubview(stackView)
         
-        let mainStackView = UIStackView(arrangedSubviews: [stackView1, ratingSlider, stackView2])
-        mainStackView.axis = .horizontal
-        mainStackView.spacing = 20
-        mainStackView.alignment = .center
-        addSubview(mainStackView)
-        
-        mainStackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            mainStackView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 20),
-            mainStackView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            mainStackView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            mainStackView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -20)
+            stackView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 20),
+            stackView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            stackView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -20),
+            stackView.bottomAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
     
+    private func setupStarStackView() {
+        starStackView.axis = .horizontal
+        starStackView.alignment = .center
+        starStackView.distribution = .fillEqually
+        
+        let starEmpty = UIImage(systemName: "star")
+        let starFilled = UIImage(systemName: "star.fill")
+        
+        for _ in 0..<5 {
+            let starImageView = UIImageView(image: starEmpty)
+            starImageView.contentMode = .scaleAspectFit
+            starStackView.addArrangedSubview(starImageView)
+        }
+    }
+    
+    private func updateStars(for rating: Float) {
+        let filledStars = Int(round(rating))
+        
+        for i in 0..<5 {
+            let starImageView = starStackView.arrangedSubviews[i] as! UIImageView
+            
+            if i < filledStars {
+                starImageView.image = UIImage(systemName: "star.fill")
+            } else {
+                starImageView.image = UIImage(systemName: "star")
+            }
+        }
+    }
+    
     @objc private func sliderValueChanged() {
-        let ratingDifference = ratingSlider.value
-        let movie1Rating = max(0, min(5, 5 + ratingDifference))
-        let movie2Rating = max(0, min(5, 5 - ratingDifference))
-        
-        delegate?.ratingDidChange(for: movie1, newRating: movie1Rating)
-        delegate?.ratingDidChange(for: movie2, newRating: movie2Rating)
-        
-        ratingLabel1.text = "Rating: \(movie1Rating)"
-        ratingLabel2.text = "Rating: \(movie2Rating)"
+        let newRating = ratingSlider.value
+        averageRatingLabel.text = "Average Rating: \(newRating)"
+        updateStars(for: newRating)
+        delegate?.ratingDidChange(for: movie, newRating: newRating)
+    }
+    
+    func updateAverageRatingLabel() {
+        averageRatingLabel.text = "Average Rating: \(movie.averageRating)"
+        updateStars(for: movie.averageRating)
     }
 }

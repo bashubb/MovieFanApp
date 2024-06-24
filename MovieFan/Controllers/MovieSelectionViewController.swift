@@ -4,12 +4,12 @@ class MovieSelectionViewController: UIViewController {
     private var movies: [Movie] = []
     private var tableView: UITableView!
     private var isRatingMode = false
+    private var isCompareMode = false
     private var selectedMovies: [Movie] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Movies"
-        
         setupNavigationBar()
         setupTableView()
         
@@ -17,12 +17,48 @@ class MovieSelectionViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
-        let switchModeButton = UIBarButtonItem(title: "Switch Mode", style: .plain, target: self, action: #selector(switchMode))
-        navigationItem.rightBarButtonItem = switchModeButton
+        navigationController?.navigationBar.prefersLargeTitles = true
+        setUpRightNavButton()
+        setUpLeftNavButton()
+    }
+    
+    private func setUpRightNavButton() {
+        var modeTitle = ""
+        if isRatingMode {
+            modeTitle = "Movie Details"
+        } else {
+            modeTitle = "Rating Mode"
+        }
+        
+        if isCompareMode == false {
+            let switchModeButton = UIBarButtonItem(title: modeTitle, style: .plain, target: self, action: #selector(switchMode))
+            navigationItem.rightBarButtonItem = switchModeButton
+        } else {
+            navigationItem.rightBarButtonItem = nil
+        }
+    }
+
+    private func setUpLeftNavButton() {
+        var compareTitle = ""
+        if isCompareMode {
+            compareTitle = "Single Mode"
+        } else {
+            compareTitle = "Compare Mode"
+        }
+        
+        let compareButton = UIBarButtonItem(title: compareTitle, style: .plain, target: self, action: #selector(compareSelectMode))
+        navigationItem.leftBarButtonItem = compareButton
     }
     
     @objc private func switchMode() {
         isRatingMode.toggle()
+        setupNavigationBar()
+        tableView.reloadData()
+    }
+    
+    @objc private func compareSelectMode() {
+        isCompareMode.toggle()
+        setupNavigationBar()
         tableView.reloadData()
     }
     
@@ -70,7 +106,7 @@ extension MovieSelectionViewController: UITableViewDelegate, UITableViewDataSour
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let movie = movies[indexPath.row]
-        if isRatingMode {
+        if isCompareMode {
             selectedMovies.append(movie)
             if selectedMovies.count == 2 {
                 let ratingVC = MovieRatingViewController(movie1: selectedMovies[0], movie2: selectedMovies[1])

@@ -16,7 +16,7 @@ class MovieDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = movie.title
-        view.backgroundColor = .white // Ustawienie tła widoku kontrolera na biały
+        view.backgroundColor = .white 
         
         setupMovieDetailsView()
     }

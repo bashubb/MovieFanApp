@@ -1,9 +1,9 @@
 import UIKit
 
 class MovieDetailsView: UIView {
-    private let movie: Movie
+    private let movie: MovieModel
     
-    init(movie: Movie) {
+    init(movie: MovieModel) {
         self.movie = movie
         super.init(frame: .zero)
         
@@ -15,7 +15,7 @@ class MovieDetailsView: UIView {
     }
     
     private func setupView() {
-        backgroundColor = .white  // Dodaj tło, aby upewnić się, że widok jest widoczny
+        backgroundColor = .white 
         
         let imageView = UIImageView(image: UIImage(named: movie.coverImageName))
         imageView.contentMode = .scaleAspectFit
@@ -26,7 +26,7 @@ class MovieDetailsView: UIView {
         descriptionLabel.text = movie.description
         descriptionLabel.numberOfLines = 0
         let ratingLabel = UILabel()
-        ratingLabel.text = "Rating: \(movie.averageRating)"
+        ratingLabel.text = "Rating: \(String(format: "%.2f", movie.averageRating()))"
         
         let stackView = UIStackView(arrangedSubviews: [imageView, titleLabel, descriptionLabel, ratingLabel])
         stackView.axis = .vertical

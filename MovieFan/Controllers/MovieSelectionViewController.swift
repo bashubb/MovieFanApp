@@ -2,7 +2,10 @@ import UIKit
 
 class MovieSelectionViewController: UIViewController {
     private var movies: [Movie] = []
+    
     private var tableView: UITableView!
+    private var starRatingView: StarRatingView!
+    
     private var isRatingMode = false
     private var isCompareMode = false
     private var selectedMovies: [Movie] = []
@@ -16,6 +19,14 @@ class MovieSelectionViewController: UIViewController {
         loadMovies()
     }
     
+    private func loadMovies() {
+        movies = [
+            Movie(title: "Movie 1", coverImageName: "cover1", description: "Description 1"),
+            Movie(title: "Movie 2", coverImageName: "cover2", description: "Description 2")
+        ]
+    }
+    
+    //MARK: - NavigationBar setUp
     private func setupNavigationBar() {
         navigationController?.navigationBar.prefersLargeTitles = true
         setUpRightNavButton()
@@ -31,13 +42,13 @@ class MovieSelectionViewController: UIViewController {
         }
         
         if isCompareMode == false {
-            let switchModeButton = UIBarButtonItem(title: modeTitle, style: .plain, target: self, action: #selector(switchMode))
+            let switchModeButton = UIBarButtonItem(title: modeTitle, style: .plain, target: self, action: #selector(switchRatingMode))
             navigationItem.rightBarButtonItem = switchModeButton
         } else {
             navigationItem.rightBarButtonItem = nil
         }
     }
-
+    
     private func setUpLeftNavButton() {
         var compareTitle = ""
         if isCompareMode {
@@ -50,7 +61,7 @@ class MovieSelectionViewController: UIViewController {
         navigationItem.leftBarButtonItem = compareButton
     }
     
-    @objc private func switchMode() {
+    @objc private func switchRatingMode() {
         isRatingMode.toggle()
         setupNavigationBar()
         tableView.reloadData()
@@ -60,8 +71,10 @@ class MovieSelectionViewController: UIViewController {
         isCompareMode.toggle()
         setupNavigationBar()
         tableView.reloadData()
+        selectedMovies.removeAll()
     }
     
+    //MARK: - SetUpTableView
     private func setupTableView() {
         tableView = UITableView(frame: view.bounds)
         tableView.delegate = self
@@ -76,20 +89,50 @@ class MovieSelectionViewController: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
     }
+}
+
+//MARK: - Rating PopUP
+extension MovieSelectionViewController {
     
-    private func loadMovies() {
-        movies = [
-            Movie(title: "Movie 1", coverImageName: "cover1", description: "Description 1", averageRating: 0),
-            Movie(title: "Movie 2", coverImageName: "cover2", description: "Description 2", averageRating: 0)
-        ]
+    private func showRatingAlert(movie: Movie) {
+        let alertController = UIAlertController(title: "Rate this Movie", message: nil, preferredStyle: .alert)
         
-        // Update average ratings
-        for index in movies.indices {
-            movies[index].averageRating = MovieRatingManager.shared.getAverageRating(for: movies[index])
+        // Add custom StarRatingView to UIAlertController
+        let starRatingView = StarRatingView()
+        starRatingView.translatesAutoresizingMaskIntoConstraints = false
+        alertController.view.addSubview(starRatingView)
+        
+        let okAction = UIAlertAction(title: "Rate", style: .default) { _ in
+            let rating = Float(starRatingView.getRating())
+            print("User rated with \(rating) stars")
+            self.updateAverageRating(movie: movie, rating: rating)
+            self.tableView.reloadData()
         }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alertController.addAction(okAction)
+        alertController.addAction(cancelAction)
+        
+        // Layout for StarRatingView
+        let margin: CGFloat = 50.0
+        NSLayoutConstraint.activate([
+            starRatingView.topAnchor.constraint(equalTo: alertController.view.safeAreaLayoutGuide.topAnchor, constant: margin),
+            starRatingView.leadingAnchor.constraint(equalTo: alertController.view.safeAreaLayoutGuide.leadingAnchor, constant: margin),
+            starRatingView.trailingAnchor.constraint(equalTo: alertController.view.safeAreaLayoutGuide.trailingAnchor, constant: -margin),
+            starRatingView.bottomAnchor.constraint(equalTo: alertController.view.safeAreaLayoutGuide.bottomAnchor, constant: -margin)
+        ])
+        
+        // Wyświetlamy alert
+        present(alertController, animated: true, completion: nil)
+    }
+    
+    func updateAverageRating(movie: Movie, rating: Float) {
+        MovieRatingManager.shared.rateMovie(movie, rating: rating)
     }
 }
 
+//MARK: - UITableViewDelegate, UITableViewDataSource
 extension MovieSelectionViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return movies.count
@@ -98,8 +141,12 @@ extension MovieSelectionViewController: UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         let movie = movies[indexPath.row]
+        
+        if selectedMovies.contains(movie){
+            cell.backgroundColor = .gray
+        }
         cell.textLabel?.text = movie.title
-        cell.detailTextLabel?.text = "Rating: \(MovieRatingManager.shared.getAverageRating(for: movie))"
+        cell.detailTextLabel?.text = "Rating: \(String(format: "%.2f", movie.averageRating()))"
         cell.imageView?.image = UIImage(named: movie.coverImageName)
         return cell
     }
@@ -109,13 +156,17 @@ extension MovieSelectionViewController: UITableViewDelegate, UITableViewDataSour
         if isCompareMode {
             selectedMovies.append(movie)
             if selectedMovies.count == 2 {
-                let ratingVC = MovieRatingViewController(movie1: selectedMovies[0], movie2: selectedMovies[1])
+                let ratingVC = MovieCompareViewController(movie1: selectedMovies[0], movie2: selectedMovies[1])
                 navigationController?.pushViewController(ratingVC, animated: true)
                 selectedMovies.removeAll()
             }
+        } else if isRatingMode {
+            // show popUP for rating
+            showRatingAlert(movie: movie)
         } else {
             let detailsVC = MovieDetailsViewController(movie: movie)
             navigationController?.pushViewController(detailsVC, animated: true)
         }
     }
+    
 }

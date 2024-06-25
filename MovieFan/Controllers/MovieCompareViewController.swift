@@ -1,17 +1,14 @@
 import UIKit
 
-protocol MovieRatingViewDelegate: AnyObject {
-    func ratingDidChange(for movie: Movie, newRating: Float)
-}
-
-
-class MovieRatingViewController: UIViewController, MovieRatingViewDelegate {
-    private var movie1: Movie
-    private var movie2: Movie
-    private var movie1RatingView: MovieRatingView!
-    private var movie2RatingView: MovieRatingView!
+class MovieCompareViewController: UIViewController{
+    private var movie1: MovieModel
+    private var movie2: MovieModel
+    private var movie1RatingView: MovieCompareView!
+    private var movie2RatingView: MovieCompareView!
     
-    init(movie1: Movie, movie2: Movie) {
+    private var higherRating = ""
+    
+    init(movie1: MovieModel, movie2: MovieModel) {
         self.movie1 = movie1
         self.movie2 = movie2
         super.init(nibName: nil, bundle: nil)
@@ -25,13 +22,20 @@ class MovieRatingViewController: UIViewController, MovieRatingViewDelegate {
         super.viewDidLoad()
         title = "Compare Movies"
         view.backgroundColor = .white
-        
+        compareRatings()
         setupMovieRatingViews()
     }
     
+    private func compareRatings() {
+        if movie1.averageRating() > movie2.averageRating() {
+            higherRating = movie1.title
+        } else {
+            higherRating = movie2.title
+        }
+    }
+    
     private func setupMovieRatingViews() {
-        movie1RatingView = MovieRatingView(movie: movie1)
-        movie1RatingView.delegate = self
+        movie1RatingView = MovieCompareView(movie: movie1, higherRating: movie1.title == higherRating)
         view.addSubview(movie1RatingView)
         
         movie1RatingView.translatesAutoresizingMaskIntoConstraints = false
@@ -42,8 +46,7 @@ class MovieRatingViewController: UIViewController, MovieRatingViewDelegate {
             movie1RatingView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
         
-        movie2RatingView = MovieRatingView(movie: movie2)
-        movie2RatingView.delegate = self
+        movie2RatingView = MovieCompareView(movie: movie2, higherRating: movie2.title == higherRating)
         view.addSubview(movie2RatingView)
         
         movie2RatingView.translatesAutoresizingMaskIntoConstraints = false
@@ -54,14 +57,6 @@ class MovieRatingViewController: UIViewController, MovieRatingViewDelegate {
             movie2RatingView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
-    
-    func ratingDidChange(for movie: Movie, newRating: Float) {
-        if movie == movie1 {
-            movie1.averageRating = newRating
-            movie1RatingView.updateAverageRatingLabel()
-        } else if movie == movie2 {
-            movie2.averageRating = newRating
-            movie2RatingView.updateAverageRatingLabel()
-        }
-    }
 }
+
+

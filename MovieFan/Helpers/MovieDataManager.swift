@@ -37,8 +37,6 @@ struct MovieDataManager {
                     return
                 }
                 guard let data else { return }
-                
-                print(String(data: data, encoding: .utf8) ?? "")
                 if let movies = self.parseJSON(data) {
                     delegate?.didUpdateMovies(self, movies: movies)
                 }

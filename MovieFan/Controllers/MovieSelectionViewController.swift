@@ -1,29 +1,26 @@
 import UIKit
 
 class MovieSelectionViewController: UIViewController {
-    private var movies: [Movie] = []
+    private var movies: [MovieModel] = []
     
     private var tableView: UITableView!
     private var starRatingView: StarRatingView!
     
     private var isRatingMode = false
     private var isCompareMode = false
-    private var selectedMovies: [Movie] = []
+    private var selectedMovies: [MovieModel] = []
+    
+    var movieManager = MovieDataManager()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        movieManager.delegate = self
+        movieManager.fetchMovies()
+        
         title = "Movies"
         setupNavigationBar()
         setupTableView()
         
-        loadMovies()
-    }
-    
-    private func loadMovies() {
-        movies = [
-            Movie(title: "Movie 1", coverImageName: "cover1", description: "Description 1"),
-            Movie(title: "Movie 2", coverImageName: "cover2", description: "Description 2")
-        ]
     }
     
     //MARK: - NavigationBar setUp
@@ -31,6 +28,7 @@ class MovieSelectionViewController: UIViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         setUpRightNavButton()
         setUpLeftNavButton()
+        selectedMovies.removeAll()
     }
     
     private func setUpRightNavButton() {
@@ -71,7 +69,6 @@ class MovieSelectionViewController: UIViewController {
         isCompareMode.toggle()
         setupNavigationBar()
         tableView.reloadData()
-        selectedMovies.removeAll()
     }
     
     //MARK: - SetUpTableView
@@ -91,10 +88,24 @@ class MovieSelectionViewController: UIViewController {
     }
 }
 
+//MARK: - MovieManagerDelegate
+extension MovieSelectionViewController: MovieManagerDelegate {
+    func didUpdateMovies(_ movieManager: MovieDataManager, movies: [MovieModel]) {
+        DispatchQueue.main.async {
+            self.movies = movies
+            self.tableView.reloadData()
+        }
+    }
+    
+    func didFailWithError(error: any Error) {
+        print(error)
+    }
+}
+
 //MARK: - Rating PopUP
 extension MovieSelectionViewController {
     
-    private func showRatingAlert(movie: Movie) {
+    private func showRatingAlert(movie: MovieModel) {
         let alertController = UIAlertController(title: "Rate this Movie", message: nil, preferredStyle: .alert)
         
         // Add custom StarRatingView to UIAlertController
@@ -127,7 +138,7 @@ extension MovieSelectionViewController {
         present(alertController, animated: true, completion: nil)
     }
     
-    func updateAverageRating(movie: Movie, rating: Float) {
+    func updateAverageRating(movie: MovieModel, rating: Float) {
         MovieRatingManager.shared.rateMovie(movie, rating: rating)
     }
 }
@@ -141,29 +152,27 @@ extension MovieSelectionViewController: UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         let movie = movies[indexPath.row]
-        
-        if selectedMovies.contains(movie){
-            cell.backgroundColor = .gray
-        }
         cell.textLabel?.text = movie.title
-        cell.detailTextLabel?.text = "Rating: \(String(format: "%.2f", movie.averageRating()))"
-        cell.imageView?.image = UIImage(named: movie.coverImageName)
+        cell.detailTextLabel?.text = "Rating: \(String(format: "%.2f", movie.averageRating))"
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let movie = movies[indexPath.row]
         if isCompareMode {
+            // add to compare
             selectedMovies.append(movie)
             if selectedMovies.count == 2 {
+                // display compare screen when 2 movies selected
                 let ratingVC = MovieCompareViewController(movie1: selectedMovies[0], movie2: selectedMovies[1])
                 navigationController?.pushViewController(ratingVC, animated: true)
                 selectedMovies.removeAll()
             }
         } else if isRatingMode {
-            // show popUP for rating
+            // display rating popUP
             showRatingAlert(movie: movie)
         } else {
+            // display movie details
             let detailsVC = MovieDetailsViewController(movie: movie)
             navigationController?.pushViewController(detailsVC, animated: true)
         }

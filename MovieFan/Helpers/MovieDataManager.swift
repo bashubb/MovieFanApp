@@ -8,16 +8,19 @@
 import Foundation
 
 protocol MovieManagerDelegate {
-    func didUpdateMovies(_ movieManager: MovieManager, movie: MovieModel)
+    func didUpdateMovies(_ movieManager: MovieDataManager, movies: [MovieModel])
     func didFailWithError(error: Error)
 }
 
-struct MovieManager {
+struct MovieDataManager {
      
     let urlString = "https://freetestapi.com/api/v1/movies?limit=5"
     
     var delegate: MovieManagerDelegate?
   
+    func fetchMovies() {
+        performRequest(with: urlString)
+    }
     
     func performRequest(with urlString: String) {
         //1.Create URL
@@ -35,10 +38,10 @@ struct MovieManager {
                 }
                 guard let data else { return }
                 
-                if let movie = self.parseJSON(data) {
-                    delegate?.didUpdateMovies(self, movie: movie)
+                print(String(data: data, encoding: .utf8) ?? "")
+                if let movies = self.parseJSON(data) {
+                    delegate?.didUpdateMovies(self, movies: movies)
                 }
-                
             }
         
             //4.Start the task
@@ -46,18 +49,24 @@ struct MovieManager {
         }
     }
     
-    func parseJSON(_ movieData: Data) -> MovieModel? {
+    func parseJSON(_ movieData: Data) -> [MovieModel]? {
         do {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
             
-            let decodedData = try decoder.decode(MovieData.self, from: movieData)
-//            let id = decodedData.weather[0].id
-//            let temp = decodedData.main.temp
-//            let name = decodedData.name
+            let decodedData = try decoder.decode([MovieData].self, from: movieData)
             
-//            return WeatherModel(conditionId: id, cityName: name, temperature: temp)
-            return MovieModel(title: "", coverImageName: "", description: "")
+            var movies = [MovieModel]()
+            for singleMovie in decodedData {
+                let parsedMovie = MovieModel(
+                    title: singleMovie.title,
+                    poster: singleMovie.poster,
+                    plot: singleMovie.plot,
+                    actors: singleMovie.actors
+                )
+                movies.append(parsedMovie)
+            }
+            return movies
         } catch {
             delegate?.didFailWithError(error: error)
             return nil

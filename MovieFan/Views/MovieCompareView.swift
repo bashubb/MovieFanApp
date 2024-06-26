@@ -2,13 +2,14 @@ import UIKit
 
 class MovieCompareView: UIView {
     private let movie: MovieModel
-    private var higherRating: Bool
-    private let averageRatingLabel = UILabel()
+    private var higherRating: Bool?
     private let starStackView = UIStackView()
+    private let side: String
     
-    init(movie: MovieModel, higherRating: Bool) {
+    init(movie: MovieModel, higherRating: Bool, side: String) {
         self.movie = movie
         self.higherRating = higherRating
+        self.side = side
         super.init(frame: .zero)
         
         setupView()
@@ -23,12 +24,16 @@ class MovieCompareView: UIView {
         
         let titleLabel = UILabel()
         titleLabel.text = movie.title
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 20)
+        titleLabel.font = UIFont.systemFont(ofSize: 20, weight: .semibold, width: .compressed)
         
-        let imageView = UIImageView(image: UIImage(named: movie.coverImageName))
+        
+        let imageView = movie.moviePoster
         imageView.contentMode = .scaleAspectFit
+        imageView.layer.cornerRadius = 5
         
-        averageRatingLabel.text = "Average Rating: \(String(format: "%.2f", movie.averageRating()))"
+        let averageRatingLabel = UILabel()
+        
+        averageRatingLabel.text = "Average Rating: \(String(format: "%.2f", movie.averageRating))"
         averageRatingLabel.font = UIFont.systemFont(ofSize: 10, weight: .medium)
         averageRatingLabel.numberOfLines = 0
         
@@ -39,30 +44,31 @@ class MovieCompareView: UIView {
         stackView.spacing = 5
         
         let backgroundView = UIView()
-        if higherRating {
-            backgroundView.backgroundColor = .systemYellow  // Tło pod stackView
-            backgroundView.layer.cornerRadius = 8
-            backgroundView.clipsToBounds = true
+        
+        if let higherRating = higherRating {
+            if higherRating {
+                backgroundView.backgroundColor = .gray.withAlphaComponent(0.2)
+                backgroundView.layer.cornerRadius = 5
+                backgroundView.clipsToBounds = true
+            }
         }
         
-        // Dodanie tła i stackView do głównego widoku
         addSubview(backgroundView)
         addSubview(stackView)
         
         stackView.translatesAutoresizingMaskIntoConstraints = false
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Ustawienie constraints dla backgroundView i stackView
         NSLayoutConstraint.activate([
             stackView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: 20),
             stackView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 20),
             stackView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -20),
             stackView.bottomAnchor.constraint(lessThanOrEqualTo: safeAreaLayoutGuide.bottomAnchor, constant: -20),
             
-            backgroundView.topAnchor.constraint(equalTo: stackView.topAnchor, constant: -10),  // Przesunięcie tła w górę od stackView
-            backgroundView.leadingAnchor.constraint(equalTo: stackView.leadingAnchor, constant: -10),  // Przesunięcie tła w lewo od stackView
-            backgroundView.trailingAnchor.constraint(equalTo: stackView.trailingAnchor, constant: 10),  // Przesunięcie tła w prawo od stackView
-            backgroundView.bottomAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 10)  // Przesunięcie tła w dół od stackView
+            backgroundView.topAnchor.constraint(equalTo: stackView.topAnchor, constant: -20),
+            backgroundView.leadingAnchor.constraint(equalTo: stackView.leadingAnchor, constant: -20),
+            backgroundView.trailingAnchor.constraint(equalTo: stackView.trailingAnchor, constant: 20),
+            backgroundView.bottomAnchor.constraint(lessThanOrEqualTo: stackView.bottomAnchor, constant: 20)
         ])
     }
     
@@ -78,15 +84,15 @@ class MovieCompareView: UIView {
             starImageView.contentMode = .scaleAspectFit
             starStackView.addArrangedSubview(starImageView)
         }
-        
-        updateStars(for: MovieRatingManager.shared.getAverageRating(for: movie))
+        updateStars(for: MovieRatingManager.shared.getAverageRating(for: movie), on: side)
     }
     
-    private func updateStars(for rating: Float) {
+    private func updateStars(for rating: Float, on side: String) {
         let filledStars = Int(round(rating))
+        let totalStars = starStackView.arrangedSubviews.count
         
         for i in 0..<5 {
-            let starImageView = starStackView.arrangedSubviews[i] as! UIImageView
+            let starImageView = side == "right" ? starStackView.arrangedSubviews[i] as! UIImageView : starStackView.arrangedSubviews[totalStars - 1 - i] as! UIImageView
             
             if i < filledStars {
                 starImageView.image = UIImage(systemName: "star.fill")?.withTintColor(.orange, renderingMode: .alwaysOriginal)

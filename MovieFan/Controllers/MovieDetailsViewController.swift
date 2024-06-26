@@ -1,10 +1,10 @@
 import UIKit
 
 class MovieDetailsViewController: UIViewController {
-    private let movie: Movie
+    private let movie: MovieModel
     private var movieDetailsView: MovieDetailsView!
     
-    init(movie: Movie) {
+    init(movie: MovieModel) {
         self.movie = movie
         super.init(nibName: nil, bundle: nil)
     }
@@ -15,8 +15,7 @@ class MovieDetailsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = movie.title
-        view.backgroundColor = .white 
+        view.backgroundColor = .white
         
         setupMovieDetailsView()
     }

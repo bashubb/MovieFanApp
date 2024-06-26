@@ -1,20 +1,29 @@
 
 
-import Foundation
+import UIKit
 
 struct MovieModel: Comparable {
-    
     let title: String
-    let coverImageName: String
-    let description: String
+    let poster: String
+    let plot: String
+    let actors: [String]
     
-    func averageRating() -> Float {
+    var moviePoster: UIImageView {
+        let imageView = UIImageView()
+        
+        if let imageURL = URL(string: poster) {
+            imageView.loadImage(from: imageURL)
+        }
+        return imageView
+    }
+    
+    var averageRating: Float {
         MovieRatingManager.shared.getAverageRating(for: self)
     }
     
     static func < (lhs: MovieModel, rhs: MovieModel) -> Bool {
         (lhs.title == rhs.title)
-        && (lhs.description == rhs.description)
+        && (lhs.poster == rhs.poster)
     }
     
 }

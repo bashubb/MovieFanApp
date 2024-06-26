@@ -1,4 +1,9 @@
-
+//
+//  MovieRatingManager.swift
+//  MovieFan
+//
+//  Created by HubertMac on 25/06/2024.
+//
 
 import Foundation
 
@@ -11,14 +16,14 @@ class MovieRatingManager {
         loadRatings()
     }
     
-    func rateMovie(_ movie: Movie, rating: Float) {
+    func rateMovie(_ movie: MovieModel, rating: Float) {
         var movieRatings = ratings[movie.title] ?? []
         movieRatings.append(rating)
         ratings[movie.title] = movieRatings
         saveRatings()
     }
     
-    func getAverageRating(for movie: Movie) -> Float {
+    func getAverageRating(for movie: MovieModel) -> Float {
         guard let movieRatings = ratings[movie.title], !movieRatings.isEmpty else {
             return 0.0
         }

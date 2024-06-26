@@ -6,7 +6,7 @@ class MovieCompareViewController: UIViewController{
     private var movie1RatingView: MovieCompareView!
     private var movie2RatingView: MovieCompareView!
     
-    private var higherRating = ""
+    private var higherRating: String?
     
     init(movie1: MovieModel, movie2: MovieModel) {
         self.movie1 = movie1
@@ -27,15 +27,17 @@ class MovieCompareViewController: UIViewController{
     }
     
     private func compareRatings() {
-        if movie1.averageRating() > movie2.averageRating() {
+        if movie1.averageRating > movie2.averageRating {
             higherRating = movie1.title
-        } else {
+        } else if  movie1.averageRating < movie2.averageRating{
             higherRating = movie2.title
+        } else {
+            higherRating = nil
         }
     }
     
     private func setupMovieRatingViews() {
-        movie1RatingView = MovieCompareView(movie: movie1, higherRating: movie1.title == higherRating)
+        movie1RatingView = MovieCompareView(movie: movie1, higherRating: movie1.title == higherRating, side: "left")
         view.addSubview(movie1RatingView)
         
         movie1RatingView.translatesAutoresizingMaskIntoConstraints = false
@@ -46,7 +48,7 @@ class MovieCompareViewController: UIViewController{
             movie1RatingView.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
         
-        movie2RatingView = MovieCompareView(movie: movie2, higherRating: movie2.title == higherRating)
+        movie2RatingView = MovieCompareView(movie: movie2, higherRating: movie2.title == higherRating, side: "right")
         view.addSubview(movie2RatingView)
         
         movie2RatingView.translatesAutoresizingMaskIntoConstraints = false
